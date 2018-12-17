@@ -1,18 +1,32 @@
 import os
-from commitizen.cz.cz_base import BaseCommitizen
-
+from commitizen.cz.base import BaseCommitizen
 
 __all__ = ['ConventionalCommitsCz']
+
+
+class NoSubjectException(Exception):
+    ...
 
 
 def parse_scope(text):
     if not text:
         return ''
-    init_char = text[0]
-    text = text.strip().title().split()
-    text = list(''.join(text))
-    text[0] = init_char
-    return ''.join(text)
+
+    scope = text.strip().split()
+    if len(scope) == 1:
+        return scope[0]
+
+    return '-'.join(scope)
+
+
+def parse_subject(text):
+    if isinstance(text, str):
+        text = text.strip('.').strip()
+
+    if not text:
+        raise NoSubjectException
+
+    return text
 
 
 class ConventionalCommitsCz(BaseCommitizen):
@@ -25,12 +39,17 @@ class ConventionalCommitsCz(BaseCommitizen):
                 'message': 'Select the type of change you are committing',
                 'choices': [
                     {
-                        'value': 'feat',
-                        'name': 'feat: A new feature',
+                        'value': 'fix',
+                        'name': 'fix: A bug fix. Correlates with PATCH in SemVer',
                     },
                     {
-                        'value': 'fix',
-                        'name': 'fix: A bug fix',
+                        'value': 'feat',
+                        'name': 'feat: A new feature. Correlates with MINOR in SemVer',
+                    },
+                    {
+                        'value': 'BREAKING CHANGE',
+                        'name': ('BREAKING CHANGE: introduces a breaking API change. '
+                                 'Correlates with MAJOR in SemVer'),
                     },
                     {
                         'value': 'docs',
@@ -57,10 +76,14 @@ class ConventionalCommitsCz(BaseCommitizen):
                                  'existing tests')
                     },
                     {
-                        'value': 'chore',
-                        'name': ('chore: Changes to the build process or '
-                                 'auxiliary tools and libraries such as '
-                                 'documentation generation'),
+                        'value': 'build',
+                        'name': ('build: Changes that affect the build system or '
+                                 'external dependencies (example scopes: pip, docker, npm)')
+                    },
+                    {
+                        'value': 'ci',
+                        'name': ('ci: Changes to our CI configuration files and '
+                                 'scripts (example scopes: GitLabCI)'),
                     },
                 ],
             },
@@ -69,14 +92,14 @@ class ConventionalCommitsCz(BaseCommitizen):
                 'name': 'scope',
                 'message': ('Scope. Could be anything specifying place of the '
                             'commit change (users, db, poll):\n'),
-                'filter': parse_scope
+                'filter': parse_scope,
             },
             {
                 'type': 'input',
                 'name': 'subject',
+                'filter': parse_subject,
                 'message': ('Subject. Concise description of the changes. '
                             'Imperative, lower case and no final dot:\n'),
-                'filter': lambda value: value.lower().strip('.').strip()
             },
             {
                 'type': 'input',
@@ -132,7 +155,7 @@ class ConventionalCommitsCz(BaseCommitizen):
 
     def info(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        filepath = os.path.join(dir_path, 'cz_conventional_commits_info.txt')
+        filepath = os.path.join(dir_path, 'conventional_commits_info.txt')
         with open(filepath, 'r') as f:
             content = f.read()
         return content
