@@ -5,7 +5,7 @@ import delegator
 from abc import ABCMeta, abstractmethod
 from future.utils import with_metaclass
 from tempfile import NamedTemporaryFile
-from whaaaaat import style_from_dict, Token, prompt
+from PyInquirer import style_from_dict, Token, prompt
 
 
 logger = logging.getLogger(__name__)

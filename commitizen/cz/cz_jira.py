@@ -1,6 +1,6 @@
 import os
 from commitizen.cz.cz_base import BaseCommitizen
-from whaaaaat import Validator, ValidationError
+from PyInquirer import Validator, ValidationError
 
 
 __all__ = ['JiraSmartCz']

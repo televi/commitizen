@@ -104,3 +104,9 @@ venv.bak/
 .mypy_cache/
 
 .vscode/
+
+# PyCharm/JetBrains
+.idea/
+
+# Private env
+activate-3

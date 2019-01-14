@@ -19,7 +19,7 @@ EMAIL = "santiwilly@gmail.com"
 AUTHOR = "Santiago Fraire"
 REQUIRED = [
     "delegator.py",
-    "whaaaaat",
+    "PyInquirer",
     "future",
     "prompt-toolkit==1.0.15",
     'pathlib2; python_version < "3.4"',

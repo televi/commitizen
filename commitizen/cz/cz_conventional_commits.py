@@ -79,10 +79,15 @@ class ConventionalCommitsCz(BaseCommitizen):
                 'filter': lambda value: value.lower().strip('.').strip()
             },
             {
-                'type': 'input',
+                'type': 'editor',
                 'name': 'body',
                 'message': ('Body. Motivation for the change and contrast this '
-                            'with previous behavior:\n')
+                            'with previous behavior:\n'),
+                'eargs': {
+                    'editor':'default',
+                    'ext':'.txt'
+                },
+
             },
             {
                 'type': 'input',
