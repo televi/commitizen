@@ -82,7 +82,7 @@ def show_schema(args):
 
 def run(args):
     _commiter = commiter()
-    _commiter.run()
+    _commiter.run(args)
 
 
 def version():

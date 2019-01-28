@@ -5,6 +5,7 @@ import logging
 import argparse
 from configparser import RawConfigParser, NoSectionError
 from commitizen import (
+    logger,
     registered,
     run,
     set_commiter,
@@ -13,16 +14,7 @@ from commitizen import (
     show_schema,
     version,
 )
-
-
-req_version = (3,)
-cur_version = sys.version_info
-logger = logging.getLogger(__name__)
-
-if cur_version > req_version:
-    from pathlib import Path
-else:
-    from pathlib2 import Path
+from pathlib import Path
 
 
 def get_parser(config):
@@ -44,6 +36,12 @@ def get_parser(config):
         "-n", "--name", default=config.get("name"), help="use the given commitizen"
     )
     parser.add_argument(
+        "-f", "--file", help="output commit message to file"
+    )
+    parser.add_argument(
+        "-a", "--all", action="store_true", default=False, help="use -a flag to git commit"
+    )
+    parser.add_argument(
         "--version",
         action="store_true",
         default=False,
@@ -55,12 +53,7 @@ def get_parser(config):
     lscz = subparser.add_parser("ls", help="show available commitizens")
     lscz.set_defaults(func=registered)
 
-    if cur_version > req_version:
-        commit = subparser.add_parser("commit", aliases=["c"], help="create new commit")
-    else:
-        commit = subparser.add_parser("commit", help="create new commit")
-        commit = subparser.add_parser("c", help="alias for commit")
-
+    commit = subparser.add_parser("commit", aliases=["c"], help="create new commit")
     commit.set_defaults(func=run)
 
     example = subparser.add_parser("example", help="show commit example")
@@ -89,23 +82,17 @@ def load_cfg():
     # load cfg from current project
     configs = ["setup.cfg", ".cz.cfg", config_file, global_cfg]
     for cfg in configs:
-        if not os.path.exists(config_file) and os.path.exists(cfg):
-            config_file = cfg
-            break
-
-        config_file_exists = os.path.exists(config_file)
-        if config_file_exists:
-            logger.debug('Reading file "%s"', config_file)
-            config.readfp(io.open(config_file, "rt", encoding="utf-8"))
+        if os.path.exists(cfg):
+            logger.debug('Reading file "%s"', cfg)
+            config.readfp(io.open(cfg, "rt", encoding="utf-8"))
             log_config = io.StringIO()
             config.write(log_config)
             try:
                 defaults.update(dict(config.items("commitizen")))
                 break
             except NoSectionError:
-                # The file does not have commitizen section
+                # The file does not have commitizen sectioncz
                 continue
-
     return defaults
 
 
@@ -115,7 +102,7 @@ def main():
     args = parser.parse_args()
 
     if args.debug:
-        logging.getLogger("commitizen").setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
 
     if args.version:
         logger.info(version())

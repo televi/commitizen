@@ -43,12 +43,15 @@ class BaseCommitizen(with_metaclass(ABCMeta)):
         :rtype: string
         """
 
-    def commit(self, message):
+    @staticmethod
+    def commit(message, add_all=True):
         f = NamedTemporaryFile('wb', delete=False)
         f.write(message.encode('utf-8'))
         f.close()
-
-        c = delegator.run('git commit -a -F {0}'.format(f.name), block=True)
+        cmd = "git commit "
+        if add_all:
+            cmd += "-a"
+        c = delegator.run('{0} -F {1}'.format(cmd, f.name))
         print(c.out or c.err)
 
         os.unlink(f.name)
@@ -91,13 +94,26 @@ class BaseCommitizen(with_metaclass(ABCMeta)):
         m = self.message(answers)
         logger.debug('Commit message generated:\n %s', m)
 
-        c = self.commit(m)
+        cl = args[0]  # command line args
+        err = None
+        out = None
+        if cl.file is None:
+            c = self.commit(m, cl.all)
+            err = c.err
+            out = c.out
+        else:
+            try:
+                with open(cl.file, "w") as _f:
+                    _f.write(m)
+                    logger.info("File {} written".format(cl.file))
+            except Exception as _e:
+                err = str(_e)
 
-        if c.err:
-            logger.warning(c.err)
+        if err:
+            logger.warning(err)
             sys.exit(1)
 
-        if 'nothing added' not in c.out:
+        if cl.file is None and 'nothing added' not in out:
             logger.info('Commit successful!')
 
         sys.exit(0)
